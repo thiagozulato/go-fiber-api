@@ -5,7 +5,6 @@ import (
 	"Modgo/domain/user/entities"
 	"Modgo/utils"
 	"database/sql"
-	"errors"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -20,13 +19,13 @@ func main() {
 			r, ok := erro.(utils.ResponseError)
 
 			if !ok {
-				c.Status(500).JSON(fiber.Map{
+				c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 					"message": erro.Error(),
 				})
 				return nil
 			}
 
-			c.Status(400).JSON(fiber.Map{
+			c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 				"message": r.Error(),
 			})
 
@@ -34,22 +33,14 @@ func main() {
 		},
 	})
 
-	app.Get("/:name", func(c *fiber.Ctx) error {
-		n := c.Params("name")
+	app.Get("/", func(c *fiber.Ctx) error {
+		return c.Status(fiber.StatusOK).JSON(entities.User{
+			Name: "Go API Fiber Test",
+		})
+	})
 
-		if n == "teste" {
-			return utils.NewResponseError("Usuário Inválido")
-		}
-
-		if len(n) <= 6 {
-			return errors.New("Tamanho do nome inválido")
-		}
-
-		u := entities.User{
-			Name: n,
-		}
-
-		return c.Status(fiber.StatusOK).JSON(u)
+	app.Get("/go/api/v1/demos", func(c *fiber.Ctx) error {
+		return c.Status(fiber.StatusOK).SendString("Hello World")
 	})
 
 	api := app.Group("/api")
